@@ -1,4 +1,5 @@
 #include<iostream>
+#include<queue>
 using namespace std;
 struct node
 {
@@ -14,6 +15,12 @@ private:
     void PreorderTraversalRecursion(node*);
     void PostorderTraversalRecursion(node*);
     void CopyTraversal(node*);
+    node* RecurInsert(node*,int);
+    node* Del(node*,int);
+    void LevelOR(queue<node*>&);
+    int HOBST(queue<node*>&);
+    void LevelOTT(node*,int);
+    int TreeH(node*);
 public:
     BST();
     BST(BST&);
@@ -24,7 +31,11 @@ public:
     void InorderTraversal();
     void PreorderTraversal();
     void PostorderTraversal();
+    void LevelOrderTraversal();
+    void LevelOrderTraversalTraditional();
     void Delete(int);
+    int Height();
+    int TreeHeight();
     ~BST();
 };
 BST::BST()
@@ -116,7 +127,56 @@ void BST::PostorderTraversalRecursion(node *root)
         cout<<root->item<<" ";
     }
 }
-void BST::Insert(int item) // Without recursion
+void BST::Insert(int item)
+{
+    root = RecurInsert(root,item);
+}
+node* BST::RecurInsert(node *root,int item)
+{
+    if(root)
+    {
+        if(root->item > item)
+        {
+            root->left = RecurInsert(root->left,item);
+        }
+        else
+        {
+            root->right = RecurInsert(root->right,item);
+        }
+    }
+    else
+    {
+        node *n = new node();
+        n->right=NULL;
+        n->left=NULL;
+        n->item = item;
+        return n;
+    }
+    return root;
+}
+void BST::LevelOrderTraversalTraditional()
+{
+    cout<<"Level Order Traversal = ";
+    for(int i=0;i<=Height();i++)
+    {
+        LevelOTT(root,i);
+    }
+}
+void BST::LevelOTT(node *root,int level)
+{
+    if(root==NULL)
+        return;
+    if(level==1)
+    {
+        cout<<root->item<<" ";
+    }
+    if(level>0)
+    {
+        LevelOTT(root->left,level-1);
+        LevelOTT(root->right,level-1);
+    }
+}
+/*void BST::Insert(int item) // Without recursion
 {
         node *n = new node;
         n->item = item;
@@ -147,7 +207,7 @@ void BST::Insert(int item) // Without recursion
         }
     }
 }
-
+*/
 void BST::InorderTraversal()
 {
     cout<<"Inorder Traversal : ";
@@ -169,7 +229,45 @@ void BST::InorderTraversalRecursion(node *root)
         InorderTraversalRecursion(root->right);
     }
 }
-void BST::Delete(int item)
+void BST::LevelOR(queue<node*> &q)
+{
+    if(q.empty())
+    {
+        return;
+    }
+    else
+    {
+        cout<<q.front()->item<<" ";
+        if(q.front()->left)
+        {q.push(q.front()->left);}
+        if(q.front()->right)
+        {q.push(q.front()->right);}
+        q.pop();
+        LevelOR(q);
+    }
+}
+void BST::LevelOrderTraversal()
+{
+    queue<node*> Q;
+    Q.push(root);
+    LevelOR(Q);
+}
+
+/*void BST::LevelOrderTraversal()
+{
+    queue<node*> Q;
+    Q.push(root);
+    while(!Q.empty())
+    {
+        cout<<Q.front()->item<<" ";
+        if(Q.front()->left)
+        {Q.push(Q.front()->left);}
+        if(Q.front()->right)
+        {Q.push(Q.front()->right);}
+        Q.pop();
+    }
+}*/
+/*void BST::Delete(int item)
 {
     if(root)
     {
@@ -309,30 +407,129 @@ void BST::Delete(int item)
     {
         cout<<"Tree Is Empty ";
     }
+}*/
+int BST::TreeHeight()
+{
+    return TreeH(root);
+}
+int BST::TreeH(node* root)
+{
+    if(root==NULL)
+    {
+        return 0;
+    }
+    int leftHeight = TreeH(root->left);
+    int rightHeight = TreeH(root->right);
+    if(leftHeight > rightHeight)
+        return leftHeight+1;
+    else
+        return rightHeight+1;
+}
+int BST::Height()
+{
+    queue<node*> q;
+    if(root==NULL)
+        return 0;
+    q.push(root);
+    q.push(NULL);
+    return HOBST(q);
+}
+int BST::HOBST(queue<node*> &q)//Height of Binary Search Tree
+{
+    if(q.front() == NULL && q.back() == NULL)
+        return 1;
+    else
+    {
+        if(q.front()==NULL)
+            {
+                q.push(NULL);
+                q.pop();
+                return HOBST(q)+1;
+            }
+        if(q.front()->left)
+        {
+            q.push(q.front()->left);
+        }
+        if(q.front()->right)
+        {
+            q.push(q.front()->right);
+        }
+        q.pop();
+        return HOBST(q);
+    }
+}
+void BST::Delete(int item)
+{
+    root = Del(root,item);
+}
+node* BST::Del(node* root,int item)
+{
+    if(root == NULL)
+    {
+        return NULL;
+    }
+    if(root->item = item)
+    {
+        if(!root->left && !root->right)
+        {
+            delete root;
+            return NULL;
+        }
+        else if(root->left && root->right) 
+        {
+            node *t = root->right;
+            while(t->left)
+            {
+                t=t->left;
+            }
+            root->item = t->item;
+            root->right = Del(root->right,t->item);
+        }
+        else if(root->left)
+        {
+            node* t = root;
+            root = root->left;
+            delete t;
+        }
+        else
+        {
+            node* t = root;
+            root = root->right;
+            delete t;
+        }
+    }
+    else
+    {
+        if(root->item > item)
+        {
+            root->left = Del(root->left,item);
+        }else 
+        {
+            root->right = Del(root->right,item);
+        }
+    }
+    return root;
 }
 int main()
 {
     BST B;
-    B.Insert(20);
-    B.Insert(12);
-    B.Insert(26);
-    B.Insert(6);
-    B.Insert(14);
-    //B.Insert(7);
-    B.Insert(22);
-    B.Insert(30);
-    //B.Delete(6);
-    //B.Delete(14);
+    B.Insert(5);
+    B.Insert(4);
+    B.Insert(3);
+    B.Insert(2);
+    B.Insert(1);
     B.InorderTraversal();
     cout<<endl;
     B.PostorderTraversal();
     cout<<endl;
     B.PreorderTraversal();
-    B.Delete(14);
+    //cout<<endl;
+    //B.Delete(10);
+    //B.InorderTraversal();
     cout<<endl;
-    B.PreorderTraversal();
+    B.LevelOrderTraversalTraditional();
     cout<<endl;
-    BST B2 = B;
-    B2.PreorderTraversal();
+    cout<<"Height Of the tree = "<<B.Height();
+    
     return 0;
 }
