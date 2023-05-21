@@ -23,12 +23,14 @@ private:
     void Preorder(node*);
     node* Delete(node*,int);
     int max(int,int);
-    node* DeepCopy(node*,node*);
+    node* DeepCopy(node*,node*);//DeepCopy Version 1
+    void DeepCopy(queue<node*>&,queue<node*>&);//DeepCopy Using Queue
+    void Copy(queue<node*>&,node*);
     node *MinimumValueNode(node* root);
 public:
-    AVL_Tree();
-    AVL_Tree(AVL_Tree&);
-    AVL_Tree& operator=(AVL_Tree&);
+    AVL_Tree();//Default Constructor
+    AVL_Tree(AVL_Tree&);//Copy Constructor
+    AVL_Tree& operator=(AVL_Tree&);//Overloaded Assignment Operator
     void Insert(int item);
     void Delete(int item);
     void Inorder();
@@ -37,7 +39,7 @@ public:
     void LevelOrderTraversal();
     node* Search(int item);
     bool IsEmpty();
-    ~AVL_Tree//destructor
+    ~AVL_Tree();//destructor
 };
 AVL_Tree::AVL_Tree()
 {
@@ -56,8 +58,28 @@ AVL_Tree::~AVL_Tree()
 AVL_Tree::AVL_Tree(AVL_Tree &T)
 {
     root=NULL;
-    root = DeepCopy(root,T.root);
+    if(T.root)
+    {
+    queue<node*> q1;
+    queue<node*> q2;
+
+    root = new node();
+    root->height = T.root->height;
+    root->item = T.root->item;
+    root->left = NULL;
+    root->right = NULL;
+
+
+    q1.push(root);
+    q2.push(T.root);
+
+
+    //root = DeepCopy(root,T.root);
+    DeepCopy(q1,q2);
+    }
 }
+
+
 
 AVL_Tree& AVL_Tree::operator=(AVL_Tree &T)
 {
@@ -66,9 +88,121 @@ AVL_Tree& AVL_Tree::operator=(AVL_Tree &T)
     {
         Delete(root->item);
     }
-    root = DeepCopy(root,T.root);
+
+
+    if(T.root)
+    {
+    queue<node*> q1;
+    queue<node*> q2;
+
+    root = new node();
+    root->height = T.root->height;
+    root->item = T.root->item;
+    root->left = NULL;
+    root->right = NULL;
+
+
+    q1.push(root);
+    q2.push(T.root);
+
+
+    //root = DeepCopy(root,T.root);
+    DeepCopy(q1,q2);
+    }
+
     return *this;
 }
+
+
+
+
+void AVL_Tree::DeepCopy(queue<node*> &q1,queue<node*> &q2)//Deep Copy Using Queue
+{
+    if(!q2.empty())
+    {
+        Copy(q1,q2.front());
+        node *temp = q2.front();
+        if(temp->left && temp->right)
+        {
+            q2.push(temp->left);
+            q2.push(temp->right);
+        }
+        else if(temp->left)
+        {
+            q2.push(temp->left);
+        }
+        else if(temp->right)
+        {
+            q2.push(temp->right);
+        }
+        q2.pop();
+        DeepCopy(q1,q2);
+    }
+
+}
+
+
+
+void AVL_Tree::Copy(queue<node*> &q,node *ptr)
+{
+    node *temp = q.front();
+    if(ptr->left && ptr->right)
+    {
+        temp->left = new node();
+        temp->right = new node();
+        temp->left->height = ptr->left->height;
+        temp->left->item = ptr->left->item;
+        temp->right->height = ptr->right->height;
+        temp->right->item = ptr->right->item;
+        temp->right->right = temp->right->left = temp->left->right = temp->left->left = NULL;
+        q.push(temp->left);
+        q.push(temp->right);
+    }
+    else if(ptr->left!=NULL)
+    {
+        temp->left = new node();
+        temp->left->height = ptr->left->height;
+        temp->left->item = ptr->left->item;
+        temp->left->right = temp->left->left = NULL;
+        q.push(temp->left);
+    }
+    else if(ptr->right!=NULL)
+    {
+        temp->right = new node();
+        temp->right->height = ptr->right->height;
+        temp->right->item = ptr->right->item;
+        temp->right->right = temp->right->left = NULL;
+        q.push(temp->right);
+    }
+    q.pop();
+}
+
+
+
+
+node* AVL_Tree::DeepCopy(node* root1,node* root2)
+{
+    if(root2==NULL)
+    {
+        return NULL;
+    }
+    else
+    {
+        root1 = new node();
+        root1->left = NULL;
+        root1->right = NULL;
+        root1->item = root2->item;
+        root1->height = root2->height;
+        root1->left = DeepCopy(root1->left,root2->left);
+        root1->right = DeepCopy(root1->right,root2->right);
+    }
+    return root1;
+}
+
+
+
+
+
 
 node* AVL_Tree::MinimumValueNode(node* root)
 {
@@ -154,6 +288,8 @@ node* AVL_Tree::Delete(node* r,int item)
         }
     return r;
 }
+
+
 void AVL_Tree::LevelOrderTraversal()
 {
     queue<node*> q;
@@ -179,8 +315,6 @@ void AVL_Tree::LevelOrderTraversal()
 
 }
 
-
-
 node* AVL_Tree::Search(int item)
 {
     node *temp = root;
@@ -195,27 +329,6 @@ node* AVL_Tree::Search(int item)
     }
     return NULL;
 }
-
-
-node* AVL_Tree::DeepCopy(node* root1,node* root2)
-{
-    if(root2==NULL)
-    {
-        return NULL;
-    }
-    else
-    {
-        root1 = new node();
-        root1->left = NULL;
-        root1->right = NULL;
-        root1->item = root2->item;
-        root1->height = root2->height;
-        root1->left = DeepCopy(root1->left,root2->left);
-        root1->right = DeepCopy(root1->right,root2->right);
-    }
-    return root1;
-}
-
 
 
 
@@ -359,6 +472,12 @@ node* AVL_Tree::LeftRotation(node *x)
     return y;
 }
 
+bool AVL_Tree::IsEmpty()
+{
+    if(root==NULL)
+    {return true;}
+    return false;
+}
 
 int main()
 {
@@ -373,7 +492,6 @@ int main()
     AVL_Tree T2 = T1;
     T1.Inorder();
     cout<<endl;
-    T2.Delete(40);
     T2.Inorder();
     cout<<endl;
     T1.LevelOrderTraversal();
